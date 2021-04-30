@@ -1,187 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Chat Example</title>
-<script type="text/javascript">
-window.onload = function () {
-    var conn;
-    var msg = document.getElementById("msg");
-    var log = document.getElementById("log");
+<title>Chat</title>
+    <script type="text/javascript">
+    window.onload = function () {
+        var conn;
+        var msg = document.getElementById("msg");
+        var log = document.getElementById("log");
 
-    function appendLog(item) {
-        var doScroll = log.scrollTop > log.scrollHeight - log.clientHeight - 1;
-        log.appendChild(item);
-        if (doScroll) {
-            log.scrollTop = log.scrollHeight - log.clientHeight;
-        }
-    }
-
-    document.getElementById("form").onsubmit = function () {
-        if (!conn) {
-            return false;
-        }
-        if (!msg.value) {
-            return false;
-        }
-        conn.send(msg.value);
-        msg.value = "";
-        return false;
-    };
-
-    if (window["WebSocket"]) {
-        conn = new WebSocket("ws://" + document.location.host + "/ws");
-        conn.onclose = function (evt) {
-            var item = document.createElement("div");
-            item.innerHTML = "<b>Connection closed.</b>";
-            appendLog(item);
-        };
-        conn.onmessage = function (evt) {
-            var messages = evt.data.split('\n');
-            for (var i = 0; i < messages.length; i++) {
-                var item = document.createElement("div");
-                item.innerText = messages[i];
-                appendLog(item);
+        function appendLog(item) {
+            var doScroll = log.scrollTop > log.scrollHeight - log.clientHeight - 1;
+            log.appendChild(item);
+            if (doScroll) {
+                log.scrollTop = log.scrollHeight - log.clientHeight;
             }
-        };
-    } else {
-        var item = document.createElement("div");
-        item.innerHTML = "<b>Your browser does not support WebSockets.</b>";
-        appendLog(item);
-    }
-};
-</script>
-<style type="text/css">
-    body {
-        margin:0;
-        padding:0;
+        }
 
-    }
-    .container {
-        height:100%;
-        width:100%;
-        border:4px solid red;
-        float:right;
-        display:flex;
-    }
-    span {
-        background:violet;
-        height:50px;
-        width:100%;
-        border:2px solid grey;
-        display:block;
-        text-align:center;
-        line-height:300%;
-        font-family:sans-serif;
-        font-weight:bold;
-        color:white;
-    }
-    .menu {
-        float:left;
-        height:100%;
-        width:400px;
-        border:4px solid black;
-        background:lightgrey;
-    }
-    .chatbox {
-        position:relative;
-        height:80vh;
-        width:1139px;
-        float:right;
-        border:4px solid green;
-    }
-    .send {
-        height:50px;
-        width:100px;
-    }
-    .sms-box {
-        background:orange;
-        width:100%;
-        display:block;
-        clear:both;
-        position:absolute;
-        bottom:0;
-    }
-    .sms-send {
-        padding:0px;
-        width:450px;
-        height:40px;
-        border-radius:5px;
-        border:1px solid black;
-        font-family:sans-serif;
-        font-weight:bold;
-        color:grey;
-    }
-    .message {
-        display:block;
-        border-radius:10px;
-        border-bottom-left-radius:0px;
-        background:lightgreen;
-        padding:5px;
-        word-wrap: break-word;
-        width:10%;
-        margin:10px;
-    }
-    .reply {
-        position:absolute;
-        right:20px;
-        float:right;
-        border-radius:10px;
-        border-bottom-right-radius:0px;
-        background:lightgrey;
-        padding:5px;
-        word-wrap: break-word;
-        width:10%;
-        margin:10px;
-    }
-    .conversation {
-        overflow-y:scroll;
-        height:81%;
-        width:100%;
-        background:white;
-    }
-    .menu span {
-        cursor:pointer;
-        transition:0.2s;
-    }
-    .menu span:hover {
-        opacity:0.5;
-        transition:0.2s;
-    }
-    .menu span:active {
-        opacity:0;
-    }
-    .friends-list {
-        display:none;
-    }
-    .display {
-        display:block;
-    }
-</style>
+        document.getElementById("form").onsubmit = function () {
+            if (!conn) {
+                return false;
+            }
+            if (!msg.value) {
+                return false;
+            }
+            conn.send(msg.value);
+            msg.value = "";
+            return false;
+        };
+
+        if (window["WebSocket"]) {
+            conn = new WebSocket("ws://" + document.location.host + "/ws");
+            conn.onclose = function (evt) {
+                var item = document.createElement("div");
+                item.innerHTML = "<b>Connection closed.</b>";
+                appendLog(item);
+            };
+            conn.onmessage = function (evt) {
+                var messages = evt.data.split('\n');
+                for (var i = 0; i < messages.length; i++) {
+                    var item = document.createElement("div");
+                    item.innerText = messages[i];
+                    appendLog(item);
+                }
+            };
+        } else {
+            var item = document.createElement("div");
+            item.innerHTML = "<b>Your browser does not support WebSockets.</b>";
+            appendLog(item);
+        }
+    };
+    </script>
+    <link rel="stylesheet" href="css/style.css">
+
 </head>
 
 <body>
 <!--<meta name="viewport" content="width=device-width,height=device-height,initial-scale=1,maximum-scale=1">-->
 <div class="container">
     <div class="menu">
-        <div class="friends-container">
-            <span>Friends</span>
-            <ul class="friends-list">
-                <li class="friend"></li>
+        <nav>
+            <ul>
+                <li>
+                    Channel 1
+                </li>
+                <li>
+                    Channel 2
+                </li>
             </ul>
-            <span>Profile</span>
-            <span>Messages</span>
-            <span>Settings</span>
+        </nav>
+    </div>
+
+    <form class="chat"id="form">
+        <div id="log" class="conversation"></div>
+        <div class="send-box">
+            <input class="message" id="msg" class="sms-send" name="text" placeholder="" autocomplete="off"/>
+            <button class="send" type="submit">Send</button>
         </div>
-    </div>
-    <div class="chatbox">
-        <form id="form">
-            <div id="log" class="conversation"></div>
-            <div class="sms-box">
-                <input id="msg" class="sms-send" name="text" placeholder="type..."/>
-                <button class="send" type="submit">Send</button>
-            </div>
-        </form>
-    </div>
+    </form>
 </div>
 </body>
 </html>
