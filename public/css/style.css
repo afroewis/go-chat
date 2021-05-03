@@ -46,3 +46,7 @@ body {
 .send {
     flex: 1;
 }
+
+.message, .send {
+    font-size: 1.5em;
+}
