@@ -18,11 +18,13 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	http.ServeFile(w, r, "home.html")
+
+	http.ServeFile(w, r, "public/home.html")
 }
 
 func main() {
 	flag.Parse()
+
 	hub := newHub()
 
 	go hub.run()
@@ -31,6 +33,11 @@ func main() {
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
 	})
+
+	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("public/css"))))
+
+	log.Printf("Server listening, v%d", 1)
+
 	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)

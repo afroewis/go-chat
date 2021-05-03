@@ -66,7 +66,20 @@ func (c *Client) readLoop() {
 		}
 
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		c.hub.broadcast <- message
+
+		publishErr := c.hub.pubConn.Conn.Send("PUBLISH", "chat", message)
+		flushErr := c.hub.pubConn.Conn.Flush()
+		if flushErr != nil {
+			log.Fatal("Error when flushing to redis: %v", flushErr)
+			return
+		}
+
+		log.Println("Published: %s", message)
+
+		if publishErr != nil {
+			log.Fatal("Error when publishing to redis: %v", publishErr)
+			return
+		}
 	}
 }
 
