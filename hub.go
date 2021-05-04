@@ -21,50 +21,54 @@ type Hub struct {
 }
 
 func newHub() *Hub {
-	subConn, err := redis.DialURL("redis://redis-service")
-
-	if err != nil {
-		log.Fatal("Error when creating subConn: %v", err)
-		return nil
-	}
-
-	subscriberPsc := redis.PubSubConn{Conn: subConn}
-	log.Println("Created subscriber connection")
-	subscriberPsc.Subscribe("chat")
-
-	pubConn, err := redis.DialURL("redis://redis-service")
-	log.Println("Created publisher connection")
-	if err != nil {
-		log.Fatal("Error when creating pubConn: %v", err)
-		return nil
-	}
-	publisherPsc := redis.PubSubConn{Conn: pubConn}
-
-	return &Hub{
+	var hub = Hub{
 		broadcast:  make(chan []byte),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		clients:    make(map[*Client]bool),
-		subConn:    &subscriberPsc,
-		pubConn:    &publisherPsc,
 	}
+
+	if !Debug {
+		subConn, err := redis.DialURL("redis://redis-service")
+
+		if err != nil {
+			log.Fatalf("Error when creating subConn: %v", err)
+			return nil
+		}
+
+		log.Println("Creating subscriber connection")
+		hub.subConn = &redis.PubSubConn{Conn: subConn}
+		hub.subConn.Subscribe("chat")
+
+		log.Println("Creating publisher connection")
+		pubConn, err := redis.DialURL("redis://redis-service")
+		if err != nil {
+			log.Fatalf("Error when creating pubConn: %v", err)
+			return nil
+		}
+		hub.pubConn = &redis.PubSubConn{Conn: pubConn}
+	}
+
+	return &hub
 }
 
 func (h *Hub) run() {
-	go func() {
-		for {
-			switch v := h.subConn.Receive().(type) {
-			case redis.Message:
-				fmt.Printf("Message from redis: %s\n:", v.Data)
-				h.broadcast <- v.Data
-			case redis.Subscription:
-				fmt.Printf("Subscription: %s: %s %d\n", v.Channel, v.Kind, v.Count)
-			case error:
-				log.Fatal(v)
-				return
+	if !Debug {
+		go func() {
+			for {
+				switch v := h.subConn.Receive().(type) {
+				case redis.Message:
+					fmt.Printf("Message from redis: %s\n:", v.Data)
+					h.broadcast <- v.Data
+				case redis.Subscription:
+					fmt.Printf("Subscription: %s: %s %d\n", v.Channel, v.Kind, v.Count)
+				case error:
+					log.Fatal(v)
+					return
+				}
 			}
-		}
-	}()
+		}()
+	}
 
 	for {
 		select {
