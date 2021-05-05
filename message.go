@@ -1,9 +1,9 @@
 package main
 
 type Message struct {
-	user string
+	User string
 
-	message string
+	Message string
 
-	hostname string
+	Hostname string
 }
