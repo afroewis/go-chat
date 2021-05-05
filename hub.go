@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gomodule/redigo/redis"
 	"log"
 )
@@ -58,10 +57,10 @@ func (h *Hub) run() {
 			for {
 				switch v := h.subConn.Receive().(type) {
 				case redis.Message:
-					fmt.Printf("Message from redis: %s\n:", v.Data)
+					log.Printf("Message from redis: %s\n:", v.Data)
 					h.broadcast <- v.Data
 				case redis.Subscription:
-					fmt.Printf("Subscription: %s: %s %d\n", v.Channel, v.Kind, v.Count)
+					log.Printf("Subscription: %s: %s %d\n", v.Channel, v.Kind, v.Count)
 				case error:
 					log.Fatal(v)
 					return
