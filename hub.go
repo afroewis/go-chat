@@ -79,6 +79,8 @@ func (h *Hub) run() {
 				close(client.send)
 			}
 		case message := <-h.broadcast:
+			// todo deserialize json here
+			// todo add hostname here
 			for client := range h.clients {
 				select {
 				case client.send <- message:

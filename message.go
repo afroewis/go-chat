@@ -1,9 +1,9 @@
 package main
 
 type Message struct {
-	User string
+	User string `json:"user"`
 
-	Message string
+	Message string `json:"message"`
 
-	Hostname string
+	Hostname string `json:"hostname"`
 }
