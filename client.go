@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -78,19 +79,23 @@ func (c *Client) readLoop() {
 				log.Fatal(err)
 			}
 
-			publishErr := c.hub.pubConn.Conn.Send("PUBLISH", message.Chatroom, jsonMessage)
+			// todo move to constant
+			message.Hostname, _ = os.Hostname()
+
+			updatedJsonMessage, _ := json.Marshal(message)
+
+			publishErr := c.hub.pubConn.Conn.Send("PUBLISH", message.Chatroom, updatedJsonMessage)
+			if publishErr != nil {
+				log.Fatal("Error when publishing to redis: %v", publishErr)
+				return
+			}
 			flushErr := c.hub.pubConn.Conn.Flush()
 			if flushErr != nil {
 				log.Fatal("Error when flushing to redis: %v", flushErr)
 				return
 			}
 
-			log.Println("Published: %s", jsonMessage)
-
-			if publishErr != nil {
-				log.Fatal("Error when publishing to redis: %v", publishErr)
-				return
-			}
+			log.Printf("Published: %s\n", jsonMessage)
 		} else {
 			// Publish to websocket directly
 			c.hub.broadcast <- jsonMessage

@@ -27,7 +27,8 @@
 
                 db[currentRoom].forEach(function (value, index, array) {
                     var item = document.createElement("div");
-                    item.innerHTML = "<strong>" + value.username + "</strong>: " + value.message;
+                    item.innerHTML = `<strong>${value.username}</strong> (connected to ${value.hostname}): ${value.message}`;
+
                     appendLog(item)
                 })
             });
@@ -87,7 +88,7 @@
                     db[messageObject.chatroom].push(messageObject)
 
                     if (messageObject.chatroom === currentRoom) {
-                        item.innerHTML = "<strong>" + messageObject.username + "</strong>: " + messageObject.message;
+                        item.innerHTML = `<strong>${messageObject.username}</strong> (connected to ${messageObject.hostname}): ${messageObject.message}`;
                         appendLog(item);
                     }
                 }

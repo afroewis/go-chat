@@ -4,12 +4,11 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	"os"
 )
 
 var addr = flag.String("addr", ":8080", "http service address")
 
-const Debug = true
+const Debug = false
 
 func serveHome(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.URL)
@@ -26,9 +25,6 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	var hostname, _ = os.Hostname()
-	log.Printf("Hostname: %v", hostname)
-
 	flag.Parse()
 
 	hub := newHub()

@@ -1,9 +1,9 @@
 package main
 
 type Message struct {
-	User string `json:"user"`
+	User string `json:"username"`
 
-	Chatroom string `json:"channel"` // the chat channel in which the message was sent
+	Chatroom string `json:"chatroom"`
 
 	Message string `json:"message"`
 

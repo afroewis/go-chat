@@ -59,7 +59,7 @@ func (h *Hub) run() {
 			for {
 				switch v := h.subConn.Receive().(type) {
 				case redis.Message:
-					log.Printf("Message from redis: %s\n:", v.Data)
+					log.Printf("Message from redis: %s\n:\n", v.Data)
 					h.broadcast <- v.Data
 				case redis.Subscription:
 					log.Printf("Subscription: %s: %s %d\n", v.Channel, v.Kind, v.Count)
@@ -81,8 +81,6 @@ func (h *Hub) run() {
 				close(client.send)
 			}
 		case message := <-h.broadcast:
-			// todo deserialize json here
-			// todo add hostname here
 			for client := range h.clients {
 				select {
 				case client.send <- message:
