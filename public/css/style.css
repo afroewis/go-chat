@@ -15,12 +15,14 @@ body {
     background-color: blueviolet;
     color: white;
     height: 100vh;
+    font-size: 20pt !important;
 }
 
 .chat {
     flex: 5;
     display: flex;
     flex-direction: column;
+    font-size: 1.5em;
 }
 
 .conversation {
@@ -49,4 +51,15 @@ body {
 
 .message, .send {
     font-size: 1.5em;
+}
+
+.menu ul li {
+    list-style-type: none;
+    cursor: pointer;
+    text-decoration: underline;
+    padding-bottom: 20px;
+}
+
+#username {
+    font-size: 1.1em;
 }

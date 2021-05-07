@@ -37,7 +37,9 @@ func newHub() *Hub {
 
 		log.Println("Creating subscriber connection")
 		hub.subConn = &redis.PubSubConn{Conn: subConn}
-		hub.subConn.Subscribe("chat")
+		hub.subConn.Subscribe("room-general")
+		hub.subConn.Subscribe("room-cats")
+		hub.subConn.Subscribe("room-dogs")
 
 		log.Println("Creating publisher connection")
 		pubConn, err := redis.DialURL("redis://redis-service")

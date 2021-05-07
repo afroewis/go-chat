@@ -4,48 +4,97 @@
 <title>Chat</title>
     <script type="text/javascript">
     window.onload = function () {
-        var conn;
-        var msg = document.getElementById("msg");
-        var log = document.getElementById("log");
+        var connection;
+        var messageElement = document.getElementById("msg");
+        var chatLogElement = document.getElementById("log");
+        var chatroomElements = document.getElementsByClassName("chatroom");
+
+        var currentRoom = "room-general";
+        var username;
+
+        var db = new Map();
+        db["room-general"] = [];
+        db["room-cats"] = [];
+        db["room-dogs"] = [];
+
+        for (var i = 0; i < chatroomElements.length; i++) {
+            chatroomElements.item(i).addEventListener("click", function(e) {
+                e.preventDefault();
+                currentRoom = e.target.getAttribute("data-chatroom");
+
+
+                chatLogElement.innerHTML = "";
+
+                db[currentRoom].forEach(function (value, index, array) {
+                    var item = document.createElement("div");
+                    item.innerHTML = "<strong>" + value.username + "</strong>: " + value.message;
+                    appendLog(item)
+                })
+            });
+        }
 
         function appendLog(item) {
-            var doScroll = log.scrollTop > log.scrollHeight - log.clientHeight - 1;
-            log.appendChild(item);
+            var doScroll = chatLogElement.scrollTop > chatLogElement.scrollHeight - chatLogElement.clientHeight - 1;
+
+            chatLogElement.appendChild(item);
+
             if (doScroll) {
-                log.scrollTop = log.scrollHeight - log.clientHeight;
+                chatLogElement.scrollTop = chatLogElement.scrollHeight - chatLogElement.clientHeight;
             }
         }
 
-        document.getElementById("form").onsubmit = function () {
-            if (!conn) {
+        document.getElementById("form").onsubmit = function (e) {
+            e.preventDefault();
+
+            if (!connection) {
                 return false;
             }
-            if (!msg.value) {
+            if (!messageElement.value) {
                 return false;
             }
-            conn.send(msg.value);
-            msg.value = "";
+
+            var message = {
+                username: username,
+                chatroom: currentRoom,
+                message: messageElement.value
+            }
+
+            connection.send(JSON.stringify(message));
+            messageElement.value = "";
             return false;
         };
 
+        document.getElementById("username").addEventListener("change", (event) => {
+            username = event.target.value;
+        });
+
         if (window["WebSocket"]) {
-            conn = new WebSocket("ws://" + document.location.host + "/ws");
-            conn.onclose = function (evt) {
+            connection = new WebSocket("ws://" + document.location.host + "/ws");
+
+            connection.onclose = function (event) {
                 var item = document.createElement("div");
-                item.innerHTML = "<b>Connection closed.</b>";
+                item.innerHTML = "<strong>Connection closed.</strong>";
                 appendLog(item);
             };
-            conn.onmessage = function (evt) {
-                var messages = evt.data.split('\n');
+
+            connection.onmessage = function (event) {
+                var messages = event.data.split("\n");
+
                 for (var i = 0; i < messages.length; i++) {
                     var item = document.createElement("div");
-                    item.innerText = messages[i];
-                    appendLog(item);
+
+                    var messageObject = JSON.parse(messages[i])
+                    db[messageObject.chatroom].push(messageObject)
+
+                    if (messageObject.chatroom === currentRoom) {
+                        item.innerHTML = "<strong>" + messageObject.username + "</strong>: " + messageObject.message;
+                        appendLog(item);
+                    }
                 }
             };
         } else {
             var item = document.createElement("div");
-            item.innerHTML = "<b>Your browser does not support WebSockets.</b>";
+            item.innerHTML = "<strong>Your browser does not support WebSockets.</strong>";
             appendLog(item);
         }
     };
@@ -54,25 +103,38 @@
 </head>
 
 <body>
-<!--<meta name="viewport" content="width=device-width,height=device-height,initial-scale=1,maximum-scale=1">-->
+
 <div class="container">
     <div class="menu">
+        <label for="username">
+            Username
+        </label><br>
+
+        <input type="text" id="username">
+
+        <hr>
+
+        <span class="chatrooms">CHATROOMS</span>
+
         <nav>
             <ul>
-                <li>
-                    Channel 1
+                <li class="chatroom" data-chatroom="room-general">
+                    General
                 </li>
-                <li>
-                    Channel 2
+                <li class="chatroom" data-chatroom="room-cats">
+                    Cat channel
+                </li>
+                <li class="chatroom" data-chatroom="room-dogs">
+                    Dog channel
                 </li>
             </ul>
         </nav>
     </div>
 
-    <form class="chat"id="form">
+    <form class="chat" id="form">
         <div id="log" class="conversation"></div>
         <div class="send-box">
-            <input class="message" id="msg" class="sms-send" name="text" placeholder="" autocomplete="off"/>
+            <input class="message" id="msg" name="text" placeholder="" autocomplete="off"/>
             <button class="send" type="submit">Send</button>
         </div>
     </form>

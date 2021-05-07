@@ -2,8 +2,11 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
+	"io"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -55,7 +58,7 @@ func (c *Client) readLoop() {
 	c.conn.SetPongHandler(func(string) error { _ = c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 
 	for {
-		_, message, err := c.conn.ReadMessage()
+		_, jsonMessage, err := c.conn.ReadMessage()
 
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
@@ -64,20 +67,33 @@ func (c *Client) readLoop() {
 			break
 		}
 
-		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
+		if !Debug {
+			// Publish to redis
+			jsonMessage = bytes.TrimSpace(bytes.Replace(jsonMessage, newline, space, -1))
+			dec := json.NewDecoder(strings.NewReader(string(jsonMessage)))
 
-		publishErr := c.hub.pubConn.Conn.Send("PUBLISH", "chat", message)
-		flushErr := c.hub.pubConn.Conn.Flush()
-		if flushErr != nil {
-			log.Fatal("Error when flushing to redis: %v", flushErr)
-			return
-		}
+			var message Message
 
-		log.Println("Published: %s", message)
+			if err := dec.Decode(&message); err != nil && err != io.EOF {
+				log.Fatal(err)
+			}
 
-		if publishErr != nil {
-			log.Fatal("Error when publishing to redis: %v", publishErr)
-			return
+			publishErr := c.hub.pubConn.Conn.Send("PUBLISH", message.Chatroom, jsonMessage)
+			flushErr := c.hub.pubConn.Conn.Flush()
+			if flushErr != nil {
+				log.Fatal("Error when flushing to redis: %v", flushErr)
+				return
+			}
+
+			log.Println("Published: %s", jsonMessage)
+
+			if publishErr != nil {
+				log.Fatal("Error when publishing to redis: %v", publishErr)
+				return
+			}
+		} else {
+			// Publish to websocket directly
+			c.hub.broadcast <- jsonMessage
 		}
 	}
 }
