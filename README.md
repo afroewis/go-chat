@@ -2,6 +2,8 @@
 
 Proof Of Concept: Horizontally scalable, websocket-based chat application. Uses redis pub/sub to communicate between server nodes.
 
+![Demo](assets/demo.png)
+
 ## Helpful commands
 Build docker image: `docker build -t go-chat .`
 
