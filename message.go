@@ -1,5 +1,6 @@
 package main
 
+// Message represents a chat message
 type Message struct {
 	User string `json:"username"`
 

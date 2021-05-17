@@ -6,17 +6,12 @@ import (
 )
 
 type Hub struct {
-	clients map[*Client]bool
-
-	broadcast chan []byte
-
-	register chan *Client
-
+	clients    map[*Client]bool
+	broadcast  chan []byte
+	register   chan *Client
 	unregister chan *Client
-
-	subConn *redis.PubSubConn
-
-	pubConn *redis.PubSubConn
+	subConn    *redis.PubSubConn
+	pubConn    *redis.PubSubConn
 }
 
 func newHub() *Hub {

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"io"
 	"log"
-	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -38,10 +37,8 @@ var upgrader = websocket.Upgrader{
 }
 
 type Client struct {
-	hub *Hub
-
+	hub  *Hub
 	conn *websocket.Conn
-
 	send chan []byte
 }
 
@@ -69,7 +66,6 @@ func (c *Client) readLoop() {
 		}
 
 		if !Debug {
-			// Publish to redis
 			jsonMessage = bytes.TrimSpace(bytes.Replace(jsonMessage, newline, space, -1))
 			dec := json.NewDecoder(strings.NewReader(string(jsonMessage)))
 
@@ -97,15 +93,13 @@ func (c *Client) readLoop() {
 
 			log.Printf("Published: %s\n", jsonMessage)
 		} else {
-			// Publish to websocket directly
 			c.hub.broadcast <- jsonMessage
 		}
 	}
 }
 
-// writeLoop sends messages from the hub to the websocket connection.
-// A goroutine running writeLoop is started for each connection.
-//goland:noinspection ALL
+// Sends messages from the hub to the websocket connection.
+// The application runs writeLoop in a per-connection goroutine.
 func (c *Client) writeLoop() {
 	ticker := time.NewTicker(pingPeriod)
 
@@ -147,19 +141,4 @@ func (c *Client) writeLoop() {
 			}
 		}
 	}
-}
-
-func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
-	client.hub.register <- client
-
-	// Allow collection of memory referenced by the caller by doing all work in new goroutines.
-	go client.writeLoop()
-	go client.readLoop()
 }
