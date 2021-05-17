@@ -1,8 +1,8 @@
 
 FROM golang:1.16
 WORKDIR /app
-COPY ./*.go ./
-COPY ./go.mod .
+COPY ./src/*.go ./
+COPY go.mod .
 RUN go get
 RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 
